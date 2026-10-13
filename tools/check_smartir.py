@@ -27,13 +27,18 @@ SMARTIR_FAN = {"med": "medium"}
 
 
 def broadlink_pulses(b64: str) -> list[float]:
+    """Pulse/space lengths in microseconds; ValueError on a malformed packet."""
     raw = base64.b64decode(b64)
+    if len(raw) < 4 or raw[0] != 0x26:
+        raise ValueError("not a Broadlink IR packet")
     data = raw[4 : 4 + (raw[2] | raw[3] << 8)]
     out, i = [], 0
     while i < len(data):
         v = data[i]
         i += 1
         if v == 0:
+            if i + 1 >= len(data):
+                raise ValueError("truncated packet")
             v, i = data[i] << 8 | data[i + 1], i + 2
         out.append(v * BROADLINK_TICK_US)
     return out
@@ -41,7 +46,7 @@ def broadlink_pulses(b64: str) -> list[float]:
 
 def decode(pulses: list[float]) -> bytes | None:
     """Decode one LSB-first frame; None when the capture has no header."""
-    if not (pulses[0] > 2500 and 1200 < pulses[1] < 2200):
+    if len(pulses) < 4 or not (pulses[0] > 2500 and 1200 < pulses[1] < 2200):
         return None
     bits = []
     for i in range(2, len(pulses) - 1, 2):
@@ -68,11 +73,17 @@ def main() -> int:
                     want = p.long_frame(mode, int(temp), SMARTIR_FAN.get(fan, fan), swing)
                     cases[f"{mode}/{fan}/{swing}/{temp}"] = (code, want)
 
-    fixture, ok, bad = {}, 0, 0
+    fixture, ok, bad, skipped = {}, 0, 0, 0
     for name, (code, want) in cases.items():
-        got = decode(broadlink_pulses(code))
+        try:
+            got = decode(broadlink_pulses(code))
+        except ValueError as err:
+            got, reason = None, str(err)
+        else:
+            reason = "no header"
         if got is None:
-            print(f"capture without header, skipped: {name}")
+            skipped += 1
+            print(f"skipped ({reason}): {name}")
             continue
         fixture[name] = got.hex()
         if got == want:
@@ -80,7 +91,10 @@ def main() -> int:
         else:
             bad += 1
             print(f"MISMATCH {name}: smartir {got.hex()} encoder {want.hex()}")
-    print(f"{ok} identical, {bad} mismatches")
+    print(f"{ok} identical, {bad} mismatches, {skipped} skipped")
+    if ok == 0:
+        print("nothing was compared: not a Fujitsu ARRAH2E code file?")
+        return 1
     if args.fixture:
         Path(args.fixture).write_text(json.dumps(fixture, indent=0) + "\n")
     return 1 if bad else 0

@@ -22,9 +22,9 @@ PROTOCOL: Final = 0x30
 BYTE14: Final = 0x20  # "unknown" bit IRremoteESP8266 sets for ARRAH2E
 
 CMD_TURN_OFF: Final = 0x02
-CMD_ECONO: Final = 0x09
-CMD_POWERFUL: Final = 0x39
 CMD_STEP_VERT: Final = 0x6C
+# POWERFUL (0x39) and ECONO (0x09) exist only on ARREB1E / ARREW4E remotes
+# (IRremoteESP8266), so they are deliberately not offered for ARRAH2E.
 
 MODE_CODES: Final = {"heat_cool": 0, "cool": 1, "dry": 2, "fan_only": 3, "heat": 4}
 FAN_CODES: Final = {"auto": 0, "high": 1, "medium": 2, "low": 3, "quiet": 4}
@@ -99,6 +99,6 @@ def long_frame(mode: str, temperature: float, fan: str, swing: str) -> bytes:
 
 
 def short_frame(cmd: int) -> bytes:
-    """Build a 7-byte command frame (off, powerful, vane step, ...)."""
+    """Build a 7-byte command frame (off, vertical vane step)."""
 
     return HEADER + bytes((cmd, ~cmd & 0xFF))

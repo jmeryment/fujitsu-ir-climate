@@ -47,7 +47,6 @@ def test_fixture_covers_every_mode_fan_swing():
     [
         p.long_frame("cool", 24, "auto", "off"),
         p.long_frame("heat", 16, "quiet", "both"),
-        p.short_frame(p.CMD_POWERFUL),
         p.short_frame(p.CMD_STEP_VERT),
     ],
 )
@@ -64,7 +63,6 @@ def test_checksum():
 
 def test_short_frames():
     assert p.short_frame(p.CMD_TURN_OFF).hex() == "146300101002fd"
-    assert p.short_frame(p.CMD_POWERFUL).hex() == "1463001010" + "39c6"
     assert p.short_frame(p.CMD_STEP_VERT).hex() == "1463001010" + "6c93"
 
 

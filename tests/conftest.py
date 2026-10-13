@@ -9,6 +9,7 @@ from homeassistant.components.infrared import (
 )
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -26,15 +27,27 @@ HUMIDITY_SENSOR = "sensor.room_humidity"
 
 
 class MockEmitter(InfraredEmitterEntity):
-    """Records the commands it is asked to send."""
+    """Records the commands it is asked to send; set `fail` to make sends raise."""
 
-    def __init__(self) -> None:
-        self.entity_id = EMITTER
-        self._attr_unique_id = "test_emitter"
+    def __init__(self, entity_id: str = EMITTER) -> None:
+        self.entity_id = entity_id
+        self._attr_unique_id = entity_id
         self.commands: list[InfraredCommand] = []
+        self.fail = False
 
     async def async_send_command(self, command: InfraredCommand) -> None:
+        if self.fail:
+            raise HomeAssistantError("transmit failed")
         self.commands.append(command)
+
+
+async def add_emitter(hass: HomeAssistant, entity_id: str = EMITTER) -> MockEmitter:
+    """Set up the infrared component (if needed) and add a mock emitter."""
+    assert await async_setup_component(hass, "infrared", {})
+    entity = MockEmitter(entity_id)
+    await hass.data[DATA_COMPONENT].async_add_entities([entity])
+    await hass.async_block_till_done()
+    return entity
 
 
 @pytest.fixture(autouse=True)
@@ -46,11 +59,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 @pytest.fixture
 async def emitter(hass: HomeAssistant) -> MockEmitter:
     """A working infrared emitter entity."""
-    assert await async_setup_component(hass, "infrared", {})
-    entity = MockEmitter()
-    await hass.data[DATA_COMPONENT].async_add_entities([entity])
-    hass.states.async_set(TEMP_SENSOR, "25.5")
-    hass.states.async_set(HUMIDITY_SENSOR, "61.2")
+    entity = await add_emitter(hass)
+    hass.states.async_set(TEMP_SENSOR, "25.5", {"unit_of_measurement": "°C"})
+    hass.states.async_set(HUMIDITY_SENSOR, "61.2", {"unit_of_measurement": "%"})
     await hass.async_block_till_done()
     return entity
 

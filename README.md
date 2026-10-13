@@ -56,9 +56,15 @@ Settings > Devices & services > Add integration > **Fujitsu IR Climate**:
 - **Name**: the device and entity name, e.g. "Bedroom AC".
 - **Infrared emitter**: the `infrared.*` entity that faces the unit.
 - **Room temperature / humidity sensor** (optional): shown as the climate entity's current
-  temperature and humidity.
+  temperature and humidity. Fahrenheit sensors are converted.
 
-Use **Configure** on the entry to change these later. Add one entry per air conditioner.
+Add one entry per air conditioner, each with its own emitter (a second unit in view of the same
+emitter would obey the same frames). Later changes:
+
+- **Configure** changes the room sensors.
+- **Reconfigure** points the entry at a different emitter. Do this after renaming the emitter
+  entity, because the entry stores its entity ID.
+- To rename the air conditioner, rename the device.
 
 ## Entities
 
@@ -68,14 +74,17 @@ Use **Configure** on the entry to change these later. Add one entry per air cond
 |---|---|
 | HVAC modes | off, heat_cool (auto), cool, dry, fan_only, heat |
 | Target temperature | 16-30 °C in 1 °C steps (16-17 °C in heat only; other modes clamp to 18 °C) |
-| Fan modes | auto, high, medium, low, quiet (dry always uses auto) |
+| Fan modes | auto, high, medium, low, quiet (dry always runs, and shows, auto) |
 | Swing modes | off, vertical, horizontal, both |
-| Presets | none, boost (the unit's POWERFUL mode) |
 
-- **Boost** sends POWERFUL. The unit ends it by itself after 20 minutes, and the preset goes
-  back to *none* then, or when another command is sent.
-- Changes made while the unit is off are stored and sent with the next turn-on.
-- `turn_on` resumes the last mode.
+- **While the unit is on**, every change sends the full state.
+- **While it is off**, temperature, fan and swing changes are stored and sent with the next
+  turn-on.
+- **Explicit commands** (turn on, turn off, set mode) are always sent, even if the entity already
+  shows that state, because the unit may have been changed with its own remote.
+- **Turn-on** resumes the last mode.
+- **Failed sends:** if the emitter fails to send, the entity keeps its previous state.
+- **Availability:** the entity is unavailable while its emitter is.
 
 **Buttons**
 
@@ -89,7 +98,10 @@ Use **Configure** on the entry to change these later. Add one entry per air cond
   line with Home Assistant.
 - Every state frame sets the protocol's power-on bit, as SmartIR 1292 does. Units accept it
   while already running.
-- Economy, outdoor-unit low noise, the 10 °C heat mode and timers are not implemented.
+- **POWERFUL and ECONOMY are not offered.** IRremoteESP8266 only sends them for ARREB1E/ARREW4E
+  remotes, and they have not been tested on an ARRAH2E unit. If your unit has them and you can
+  confirm the codes, please open an issue.
+- Outdoor-unit low noise, the 10 °C heat mode and timers are not implemented.
 
 ## How it works
 
@@ -103,7 +115,7 @@ Use **Configure** on the entry to change these later. Add one entry per air cond
 - **Fan:** auto 0, high 1, med 2, low 3, quiet 4.
 - **Swing:** off/vertical/horizontal/both = 0x00/0x10/0x20/0x30, ORed with the fan value.
 - **Checksum:** −(sum of bytes 7..14) mod 256.
-- **Short commands:** `14 63 00 10 10 cmd ~cmd`, where cmd is off 0x02, powerful 0x39, vane step 0x6C.
+- **Short commands:** `14 63 00 10 10 cmd ~cmd`, where cmd is off 0x02 or vertical vane step 0x6C.
 
 The carrier is 38 kHz. The header is 3500/1750 µs, the bit mark 460 µs, and a 0 or 1 is a
 430 or 1280 µs space. These timings are the medians of the SmartIR 1292 Broadlink captures.
@@ -115,10 +127,14 @@ the encoder. Use it to check whether another SmartIR Fujitsu code file matches t
 
 ```bash
 python3.14 -m venv .venv && . .venv/bin/activate
-pip install -r requirements_test.txt
+pip install -r requirements_test.txt \
+  pytest-homeassistant-custom-component==0.13.372 infrared-protocols==10.1.0
 pytest -q                     # protocol tests + config flow / entity tests in a real HA
 ruff check . && ruff format --check .
 ```
+
+CI runs the tests against the oldest supported Home Assistant release (2026.6.0) and the newest
+tested one; see `.github/workflows/tests.yml`.
 
 ## Credits
 

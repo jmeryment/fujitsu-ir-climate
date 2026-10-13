@@ -16,14 +16,22 @@
           "temperature_sensor": "Optional. Shown as the room's current temperature.",
           "humidity_sensor": "Optional. Shown as the room's current humidity."
         }
+      },
+      "reconfigure": {
+        "title": "Change infrared emitter",
+        "description": "Choose the infrared emitter entity that faces this air conditioner (e.g. after renaming or replacing it).",
+        "data": {
+          "emitter_entity_id": "Infrared emitter"
+        }
       }
     },
     "error": {
       "invalid_emitter": "Select an available infrared emitter entity."
     },
     "abort": {
-      "already_configured": "This air conditioner is already configured.",
-      "no_emitters": "No native infrared emitter entities were found."
+      "already_configured": "An air conditioner is already configured on this infrared emitter.",
+      "no_emitters": "No infrared emitter entities were found. Set up an integration that provides one (Broadlink, ESPHome, ...) first.",
+      "reconfigure_successful": "The infrared emitter was updated."
     }
   },
   "options": {
@@ -31,21 +39,15 @@
       "init": {
         "title": "Fujitsu IR Climate options",
         "data": {
-          "name": "Name",
-          "emitter_entity_id": "Infrared emitter",
           "temperature_sensor": "Room temperature sensor",
           "humidity_sensor": "Room humidity sensor"
         },
         "data_description": {
-          "emitter_entity_id": "The infrared emitter entity that faces the indoor unit (Broadlink, ESPHome and other infrared integrations).",
           "temperature_sensor": "Optional. Shown as the room's current temperature.",
           "humidity_sensor": "Optional. Shown as the room's current humidity."
         },
-        "description": "Change the emitter or the room sensors."
+        "description": "Change the room sensors shown on the climate entity. To change the emitter, use Reconfigure; to rename, rename the device."
       }
-    },
-    "error": {
-      "invalid_emitter": "Select an available infrared emitter entity."
     }
   },
   "entity": {
@@ -75,12 +77,6 @@
               "vertical": "Vertical",
               "horizontal": "Horizontal",
               "both": "Both"
-            }
-          },
-          "preset_mode": {
-            "state": {
-              "none": "None",
-              "boost": "Powerful"
             }
           }
         }

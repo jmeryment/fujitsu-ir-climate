@@ -9,15 +9,39 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-          cache: pip
-          cache-dependency-path: requirements_test.txt
       - run: pip install -r requirements_test.txt
       - run: ruff check . && ruff format --check .
+
+  tests:
+    name: tests (HA ${{ matrix.ha }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Oldest supported release (hacs.json) and the newest one tested.
+          # infrared-protocols is pinned to what each HA release's infrared manifest requires.
+          - ha: "2026.6.0"
+            harness: "0.13.336"
+            infrared_protocols: "5.6.1"
+          - ha: "2026.10.1"
+            harness: "0.13.372"
+            infrared_protocols: "10.1.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: >-
+          pip install
+          "pytest-homeassistant-custom-component==${{ matrix.harness }}"
+          "infrared-protocols==${{ matrix.infrared_protocols }}"
+      - run: python -c "import homeassistant.const as c; assert c.__version__ == '${{ matrix.ha }}', c.__version__"
       - run: pytest -q
