@@ -1,8 +1,8 @@
 # Fujitsu IR Climate
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
-[![Validate](https://github.com/__GITHUB_OWNER__/fujitsu-ir-climate/actions/workflows/validate.yml/badge.svg)](https://github.com/__GITHUB_OWNER__/fujitsu-ir-climate/actions/workflows/validate.yml)
-[![Tests](https://github.com/__GITHUB_OWNER__/fujitsu-ir-climate/actions/workflows/tests.yml/badge.svg)](https://github.com/__GITHUB_OWNER__/fujitsu-ir-climate/actions/workflows/tests.yml)
+[![Validate](https://github.com/jmeryment/fujitsu-ir-climate/actions/workflows/validate.yml/badge.svg)](https://github.com/jmeryment/fujitsu-ir-climate/actions/workflows/validate.yml)
+[![Tests](https://github.com/jmeryment/fujitsu-ir-climate/actions/workflows/tests.yml/badge.svg)](https://github.com/jmeryment/fujitsu-ir-climate/actions/workflows/tests.yml)
 
 Control a **Fujitsu General** split-system air conditioner from Home Assistant over infrared,
 using Home Assistant's native [`infrared`](https://www.home-assistant.io/integrations/infrared/)
@@ -43,7 +43,7 @@ integration will too.**
 
 ## Installation
 
-**HACS:** HACS > ⋮ > Custom repositories > add `https://github.com/__GITHUB_OWNER__/fujitsu-ir-climate`
+**HACS:** HACS > ⋮ > Custom repositories > add `https://github.com/jmeryment/fujitsu-ir-climate`
 as an *Integration*. Install **Fujitsu IR Climate**, then restart Home Assistant.
 
 **Manual:** copy `custom_components/fujitsu_ir_climate` into your `config/custom_components/`
