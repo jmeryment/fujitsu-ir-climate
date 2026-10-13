@@ -20,7 +20,8 @@ SMARTIR_FAN = {"med": "medium"}
 def _decode(timings: list[int]) -> bytes:
     """Decode the encoder's own timings back to bytes (LSB first)."""
     assert timings[:2] == [p.HDR_MARK, -p.HDR_SPACE]
-    assert timings[-1] == p.BIT_MARK
+    assert timings[-2:] == [p.BIT_MARK, -p.FRAME_GAP]
+    timings = timings[:-1]
     spaces = timings[3:-1:2]
     assert set(spaces) <= {-p.ZERO_SPACE, -p.ONE_SPACE}
     bits = [s == -p.ONE_SPACE for s in spaces]
@@ -92,3 +93,9 @@ def test_clamp_temperature(mode, requested, expected):
 def test_unknown_mode_rejected():
     with pytest.raises(ValueError):
         p.long_frame("auto", 24, "auto", "off")
+
+
+def test_broadlink_packet_ends_like_a_learned_code():
+    """The trailing gap encodes as Broadlink's 0x00 0x0d 0x05 terminator (3333 ticks)."""
+    ticks = int(p.FRAME_GAP // 32.84)  # python-broadlink pulses_to_data
+    assert divmod(ticks, 256) == (0x0D, 0x05)

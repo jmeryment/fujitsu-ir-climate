@@ -42,6 +42,11 @@ HDR_SPACE: Final = 1_750
 BIT_MARK: Final = 460
 ZERO_SPACE: Final = 430
 ONE_SPACE: Final = 1_280
+# Silence after the final mark. Learned Broadlink codes (and every SmartIR 1292 capture) end
+# with this ~109 ms gap (3333 Broadlink ticks, the 0x0d05 terminator). Without it a Broadlink
+# RM4 pro was seen to send frames the unit ignored: a trailing unpaired mark is not emitted,
+# which loses the last bit of the checksum.
+FRAME_GAP: Final = 109_470
 
 
 class FujitsuIRCommand(Command):
@@ -58,7 +63,7 @@ class FujitsuIRCommand(Command):
         for byte in self.frame:
             for bit in range(8):
                 timings += [BIT_MARK, -(ONE_SPACE if byte >> bit & 1 else ZERO_SPACE)]
-        timings.append(BIT_MARK)
+        timings += [BIT_MARK, -FRAME_GAP]
         return timings
 
 
