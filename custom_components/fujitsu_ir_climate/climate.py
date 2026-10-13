@@ -18,28 +18,19 @@ from homeassistant.components.infrared import InfraredEmitterConsumerEntity
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     ATTR_UNIT_OF_MEASUREMENT,
-    CONF_NAME,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from . import FujitsuIRConfigEntry
-from .const import (
-    CONF_EMITTER_ENTITY_ID,
-    CONF_HUMIDITY_SENSOR,
-    CONF_TEMPERATURE_SENSOR,
-    DOMAIN,
-    MANUFACTURER,
-    MODEL,
-)
+from . import FujitsuIRConfigEntry, device_info
+from .const import CONF_EMITTER_ENTITY_ID, CONF_HUMIDITY_SENSOR, CONF_TEMPERATURE_SENSOR
 from .ir_protocol import (
     CMD_STEP_VERT,
     CMD_TURN_OFF,
@@ -148,12 +139,7 @@ class FujitsuIRClimate(InfraredEmitterConsumerEntity, ClimateEntity, RestoreEnti
         self._temp_sensor = config.get(CONF_TEMPERATURE_SENSOR) or None
         self._humidity_sensor = config.get(CONF_HUMIDITY_SENSOR) or None
         self._attr_unique_id = entry.unique_id or entry.entry_id
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            manufacturer=MANUFACTURER,
-            model=MODEL,
-            name=config[CONF_NAME],
-        )
+        self._attr_device_info = device_info(entry)
         self._settings = _Settings()
 
     async def async_added_to_hass(self) -> None:

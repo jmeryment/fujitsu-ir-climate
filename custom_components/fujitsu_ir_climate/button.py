@@ -10,11 +10,9 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import FujitsuIRConfigEntry, FujitsuIRData
-from .const import DOMAIN
+from . import FujitsuIRConfigEntry, FujitsuIRData, device_info
 
 PARALLEL_UPDATES = 1
 
@@ -61,7 +59,7 @@ class FujitsuIRButton(ButtonEntity):
         self.entity_description = description
         self._data: FujitsuIRData = entry.runtime_data
         self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_{description.key}"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.entry_id)})
+        self._attr_device_info = device_info(entry)
 
     async def async_press(self) -> None:
         if self._data.climate is None:

@@ -1,5 +1,7 @@
 """Climate and button entity tests: what is sent through the emitter."""
 
+from unittest.mock import patch
+
 from homeassistant.components.climate import (
     ATTR_FAN_MODE,
     ATTR_HVAC_MODE,
@@ -7,7 +9,7 @@ from homeassistant.components.climate import (
     DOMAIN as CLIMATE,
     HVACMode,
 )
-from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, STATE_UNAVAILABLE
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, STATE_UNAVAILABLE, Platform
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
@@ -225,3 +227,11 @@ async def test_unload(hass: HomeAssistant, init_integration) -> None:
     assert await hass.config_entries.async_unload(init_integration.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(ENTITY).state == STATE_UNAVAILABLE
+
+
+async def test_buttons_name_device_on_their_own(hass: HomeAssistant, emitter, config_entry) -> None:
+    """Platforms set up concurrently; if buttons win the race they still name the device."""
+    with patch("custom_components.fujitsu_ir_climate.PLATFORMS", [Platform.BUTTON]):
+        await _setup(hass, config_entry)
+    assert hass.states.get("button.bedroom_ac_force_send_ir_command") is not None
+    assert hass.states.get("button.bedroom_ac_step_vertical_vane") is not None

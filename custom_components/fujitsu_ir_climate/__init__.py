@@ -6,9 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import PLATFORMS
+from .const import DOMAIN, MANUFACTURER, MODEL, PLATFORMS
 
 if TYPE_CHECKING:
     from .climate import FujitsuIRClimate
@@ -23,6 +25,17 @@ class FujitsuIRData:
 
 
 type FujitsuIRConfigEntry = ConfigEntry[FujitsuIRData]
+
+
+def device_info(entry: FujitsuIRConfigEntry) -> DeviceInfo:
+    """Full device info, so every platform names the device whichever sets up first."""
+
+    return DeviceInfo(
+        identifiers={(DOMAIN, entry.entry_id)},
+        manufacturer=MANUFACTURER,
+        model=MODEL,
+        name=entry.runtime_data.config[CONF_NAME],
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: FujitsuIRConfigEntry) -> bool:
