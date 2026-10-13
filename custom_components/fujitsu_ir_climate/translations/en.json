@@ -1,0 +1,90 @@
+{
+  "title": "Fujitsu IR Climate",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Fujitsu air conditioner",
+        "description": "Create a climate entity for a Fujitsu General air conditioner that uses the ARRAH2E IR protocol (AR-RAH2E, AR-RY, AR-RCE1E and similar remotes), sent through a Home Assistant infrared emitter.",
+        "data": {
+          "name": "Name",
+          "emitter_entity_id": "Infrared emitter",
+          "temperature_sensor": "Room temperature sensor",
+          "humidity_sensor": "Room humidity sensor"
+        },
+        "data_description": {
+          "emitter_entity_id": "The infrared emitter entity that faces the indoor unit (Broadlink, ESPHome and other infrared integrations).",
+          "temperature_sensor": "Optional. Shown as the room's current temperature.",
+          "humidity_sensor": "Optional. Shown as the room's current humidity."
+        }
+      }
+    },
+    "error": {
+      "invalid_emitter": "Select an available infrared emitter entity."
+    },
+    "abort": {
+      "already_configured": "This air conditioner is already configured.",
+      "no_emitters": "No native infrared emitter entities were found."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Fujitsu IR Climate options",
+        "data": {
+          "name": "Name",
+          "emitter_entity_id": "Infrared emitter",
+          "temperature_sensor": "Room temperature sensor",
+          "humidity_sensor": "Room humidity sensor"
+        },
+        "data_description": {
+          "emitter_entity_id": "The infrared emitter entity that faces the indoor unit (Broadlink, ESPHome and other infrared integrations).",
+          "temperature_sensor": "Optional. Shown as the room's current temperature.",
+          "humidity_sensor": "Optional. Shown as the room's current humidity."
+        },
+        "description": "Change the emitter or the room sensors."
+      }
+    },
+    "error": {
+      "invalid_emitter": "Select an available infrared emitter entity."
+    }
+  },
+  "entity": {
+    "button": {
+      "force_send": {
+        "name": "Force send IR command"
+      },
+      "vane_step": {
+        "name": "Step vertical vane"
+      }
+    },
+    "climate": {
+      "fujitsu_ac": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "high": "High",
+              "medium": "Medium",
+              "low": "Low",
+              "quiet": "Quiet"
+            }
+          },
+          "swing_mode": {
+            "state": {
+              "off": "Off",
+              "vertical": "Vertical",
+              "horizontal": "Horizontal",
+              "both": "Both"
+            }
+          },
+          "preset_mode": {
+            "state": {
+              "none": "None",
+              "boost": "Powerful"
+            }
+          }
+        }
+      }
+    }
+  }
+}
