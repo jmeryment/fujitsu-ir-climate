@@ -43,9 +43,10 @@ BIT_MARK: Final = 460
 ZERO_SPACE: Final = 430
 ONE_SPACE: Final = 1_280
 # Silence after the final mark. Learned Broadlink codes (and every SmartIR 1292 capture) end
-# with this ~109 ms gap (3333 Broadlink ticks, the 0x0d05 terminator). Without it a Broadlink
-# RM4 pro was seen to send frames the unit ignored: a trailing unpaired mark is not emitted,
-# which loses the last bit of the checksum.
+# with this ~109 ms gap (3333 Broadlink ticks, the 0x0d05 terminator). Without it a Fujitsu
+# ASTH09KNCA behind a Broadlink RM4 pro ignored every frame; with it, it responds. (An MHI unit
+# on the same RM4 pro accepts frames without a gap, so the Fujitsu receiver is the likely
+# reason, not the emitter.)
 FRAME_GAP: Final = 109_470
 
 

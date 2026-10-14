@@ -119,7 +119,7 @@ emitter would obey the same frames). Later changes:
 
 The carrier is 38 kHz. The header is 3500/1750 µs, the bit mark 460 µs, and a 0 or 1 is a
 430 or 1280 µs space, and each frame ends with a ~109 ms gap (the end-of-code silence learned
-Broadlink codes carry; some Broadlink RM4 pro units drop the final mark without it). These timings are the medians of the SmartIR 1292 Broadlink captures.
+Broadlink codes carry). Without that gap the tested unit ignored every frame. These timings are the medians of the SmartIR 1292 Broadlink captures.
 
 `tools/check_smartir.py` decodes a SmartIR Broadlink code file and compares every frame with
 the encoder. Use it to check whether another SmartIR Fujitsu code file matches this protocol.
