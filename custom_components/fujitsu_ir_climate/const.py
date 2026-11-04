@@ -10,6 +10,10 @@ PLATFORMS = [Platform.CLIMATE, Platform.BUTTON]
 CONF_EMITTER_ENTITY_ID = "emitter_entity_id"
 CONF_HUMIDITY_SENSOR = "humidity_sensor"
 CONF_TEMPERATURE_SENSOR = "temperature_sensor"
+# Whether the unit has a motorised left/right louvre. Without one, some units ignore every state
+# frame that asks for horizontal swing, and HomeKit's Oscillate picks "both" when it is offered.
+CONF_HORIZONTAL_SWING = "horizontal_swing"
+DEFAULT_HORIZONTAL_SWING = True
 
 DEFAULT_NAME = "Fujitsu Air Conditioner"
 MANUFACTURER = "Fujitsu General"

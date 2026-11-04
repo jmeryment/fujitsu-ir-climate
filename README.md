@@ -57,11 +57,15 @@ Settings > Devices & services > Add integration > **Fujitsu IR Climate**:
 - **Infrared emitter**: the `infrared.*` entity that faces the unit.
 - **Room temperature / humidity sensor** (optional): shown as the climate entity's current
   temperature and humidity. Fahrenheit sensors are converted.
+- **Left/right auto swing** (default on): turn it off if the unit's louvre only swings up and
+  down. Swing modes are then `off` and `vertical` only. Some units (seen on an ASTH09KNCA) ignore
+  **every** state frame that asks for left/right swing, so once `both` is selected only *off*
+  still works. Apple Home's *Oscillate* switch picks `both` whenever it is offered.
 
 Add one entry per air conditioner, each with its own emitter (a second unit in view of the same
 emitter would obey the same frames). Later changes:
 
-- **Configure** changes the room sensors.
+- **Configure** changes the room sensors and left/right auto swing.
 - **Reconfigure** points the entry at a different emitter. Do this after renaming the emitter
   entity, because the entry stores its entity ID.
 - To rename the air conditioner, rename the device.
@@ -75,7 +79,7 @@ emitter would obey the same frames). Later changes:
 | HVAC modes | off, heat_cool (auto), cool, dry, fan_only, heat |
 | Target temperature | 16-30 °C in 1 °C steps (16-17 °C in heat only; other modes clamp to 18 °C) |
 | Fan modes | auto, high, medium, low, quiet (dry always runs, and shows, auto) |
-| Swing modes | off, vertical, horizontal, both |
+| Swing modes | off, vertical, horizontal, both (off, vertical without left/right auto swing) |
 
 - **While the unit is on**, every change sends the full state.
 - **While it is off**, temperature, fan and swing changes are stored and sent with the next

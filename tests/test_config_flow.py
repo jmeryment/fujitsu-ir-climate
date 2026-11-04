@@ -9,6 +9,7 @@ import pytest
 
 from custom_components.fujitsu_ir_climate.const import (
     CONF_EMITTER_ENTITY_ID,
+    CONF_HORIZONTAL_SWING,
     CONF_HUMIDITY_SENSOR,
     CONF_TEMPERATURE_SENSOR,
     DOMAIN,
@@ -38,6 +39,7 @@ async def test_user_flow_creates_entry(hass: HomeAssistant, emitter) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "Bedroom AC"
     assert result["data"][CONF_EMITTER_ENTITY_ID] == EMITTER
+    assert result["data"][CONF_HORIZONTAL_SWING] is True  # the default
     assert result["result"].unique_id == f"bedroom_ac_{EMITTER}"
 
 
@@ -95,3 +97,19 @@ async def test_options_flow_changes_sensors(hass: HomeAssistant, init_integratio
     state = hass.states.get("climate.bedroom_ac")
     assert state.attributes.get("current_temperature") is None
     assert state.attributes["current_humidity"] == 61.2
+
+
+async def test_options_flow_turns_off_horizontal_swing(
+    hass: HomeAssistant, init_integration
+) -> None:
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_TEMPERATURE_SENSOR: TEMP_SENSOR, CONF_HORIZONTAL_SWING: False},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert init_integration.options[CONF_HORIZONTAL_SWING] is False
+    state = hass.states.get("climate.bedroom_ac")
+    assert state.attributes["swing_modes"] == ["off", "vertical"]
+    assert state.attributes["current_temperature"] == 25.5

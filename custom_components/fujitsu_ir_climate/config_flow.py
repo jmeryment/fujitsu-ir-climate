@@ -20,8 +20,10 @@ import voluptuous as vol
 
 from .const import (
     CONF_EMITTER_ENTITY_ID,
+    CONF_HORIZONTAL_SWING,
     CONF_HUMIDITY_SENSOR,
     CONF_TEMPERATURE_SENSOR,
+    DEFAULT_HORIZONTAL_SWING,
     DEFAULT_NAME,
     DOMAIN,
 )
@@ -31,6 +33,18 @@ def _emitter_selector(emitters: list[str]) -> selector.EntitySelector:
     return selector.EntitySelector(
         selector.EntitySelectorConfig(domain="infrared", include_entities=emitters)
     )
+
+
+def _unit_schema(defaults: dict[str, Any]) -> dict[vol.Marker, Any]:
+    """Room sensors, plus what the indoor unit can do."""
+
+    return {
+        **_sensor_schema(defaults),
+        vol.Required(
+            CONF_HORIZONTAL_SWING,
+            default=defaults.get(CONF_HORIZONTAL_SWING, DEFAULT_HORIZONTAL_SWING),
+        ): selector.BooleanSelector(),
+    }
 
 
 def _sensor_schema(defaults: dict[str, Any]) -> dict[vol.Marker, Any]:
@@ -84,7 +98,7 @@ class FujitsuIRClimateConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_EMITTER_ENTITY_ID,
                         description={"suggested_value": defaults.get(CONF_EMITTER_ENTITY_ID)},
                     ): _emitter_selector(emitters),
-                    **_sensor_schema(defaults),
+                    **_unit_schema(defaults),
                 }
             ),
             errors=errors,
@@ -122,7 +136,7 @@ class FujitsuIRClimateConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class FujitsuIRClimateOptionsFlow(OptionsFlow):
-    """Change the room sensors."""
+    """Change the room sensors and the unit's swing capability."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
@@ -131,4 +145,4 @@ class FujitsuIRClimateOptionsFlow(OptionsFlow):
             return self.async_create_entry(data=user_input)
 
         current = {**self.config_entry.data, **self.config_entry.options}
-        return self.async_show_form(step_id="init", data_schema=vol.Schema(_sensor_schema(current)))
+        return self.async_show_form(step_id="init", data_schema=vol.Schema(_unit_schema(current)))

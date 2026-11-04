@@ -30,7 +30,13 @@ from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from . import FujitsuIRConfigEntry, device_info
-from .const import CONF_EMITTER_ENTITY_ID, CONF_HUMIDITY_SENSOR, CONF_TEMPERATURE_SENSOR
+from .const import (
+    CONF_EMITTER_ENTITY_ID,
+    CONF_HORIZONTAL_SWING,
+    CONF_HUMIDITY_SENSOR,
+    CONF_TEMPERATURE_SENSOR,
+    DEFAULT_HORIZONTAL_SWING,
+)
 from .ir_protocol import (
     CMD_STEP_VERT,
     CMD_TURN_OFF,
@@ -51,6 +57,9 @@ ALL_MODES = (HVACMode.OFF, *ON_MODES)
 DEFAULT_TARGET = 24
 FAN_AUTO = "auto"
 SWING_OFF = "off"
+SWING_VERTICAL = "vertical"
+SWING_BOTH = "both"
+VERTICAL_ONLY_SWING_MODES = (SWING_OFF, SWING_VERTICAL)
 
 
 @dataclass(frozen=True)
@@ -124,7 +133,6 @@ class FujitsuIRClimate(InfraredEmitterConsumerEntity, ClimateEntity, RestoreEnti
     _attr_max_temp = MAX_TEMP
     _attr_hvac_modes = list(ALL_MODES)
     _attr_fan_modes = list(FAN_CODES)
-    _attr_swing_modes = list(SWING_CODES)
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.FAN_MODE
@@ -140,6 +148,11 @@ class FujitsuIRClimate(InfraredEmitterConsumerEntity, ClimateEntity, RestoreEnti
         self._humidity_sensor = config.get(CONF_HUMIDITY_SENSOR) or None
         self._attr_unique_id = entry.unique_id or entry.entry_id
         self._attr_device_info = device_info(entry)
+        self._attr_swing_modes = list(
+            SWING_CODES
+            if config.get(CONF_HORIZONTAL_SWING, DEFAULT_HORIZONTAL_SWING)
+            else VERTICAL_ONLY_SWING_MODES
+        )
         self._settings = _Settings()
 
     async def async_added_to_hass(self) -> None:
@@ -150,6 +163,10 @@ class FujitsuIRClimate(InfraredEmitterConsumerEntity, ClimateEntity, RestoreEnti
             self._settings = restored.settings
         elif (last := await self.async_get_last_state()) is not None:
             self._settings = self._settings_from_state(last)
+        # A swing mode stored before horizontal swing was turned off: keep any up/down swing.
+        if (swing := self._settings.swing_mode) not in self._attr_swing_modes:
+            swing = SWING_VERTICAL if swing == SWING_BOTH else SWING_OFF
+            self._settings = replace(self._settings, swing_mode=swing)
         if sensors := [e for e in (self._temp_sensor, self._humidity_sensor) if e]:
             self.async_on_remove(
                 async_track_state_change_event(self.hass, sensors, self._async_sensor_changed)
@@ -266,7 +283,7 @@ class FujitsuIRClimate(InfraredEmitterConsumerEntity, ClimateEntity, RestoreEnti
         await self._async_apply(replace(self._settings, fan_mode=fan_mode))
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
-        if swing_mode not in SWING_CODES:
+        if swing_mode not in self._attr_swing_modes:
             raise HomeAssistantError(f"Unsupported swing mode {swing_mode}")
         await self._async_apply(replace(self._settings, swing_mode=swing_mode))
 

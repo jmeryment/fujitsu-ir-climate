@@ -20,6 +20,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.fujitsu_ir_climate import ir_protocol as p
+from custom_components.fujitsu_ir_climate.const import CONF_HORIZONTAL_SWING
 
 from .conftest import EMITTER, TEMP_SENSOR
 
@@ -235,3 +236,54 @@ async def test_buttons_name_device_on_their_own(hass: HomeAssistant, emitter, co
         await _setup(hass, config_entry)
     assert hass.states.get("button.bedroom_ac_force_send_ir_command") is not None
     assert hass.states.get("button.bedroom_ac_step_vertical_vane") is not None
+
+
+def _without_horizontal_swing(hass, config_entry):
+    config_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(config_entry, options={CONF_HORIZONTAL_SWING: False})
+
+
+async def test_default_offers_every_swing_mode(hass: HomeAssistant, init_integration) -> None:
+    swing_modes = hass.states.get(ENTITY).attributes["swing_modes"]
+    assert swing_modes == ["off", "vertical", "horizontal", "both"]
+
+
+async def test_without_horizontal_swing(hass: HomeAssistant, emitter, config_entry) -> None:
+    """A unit without a left/right louvre is never sent horizontal swing."""
+    _without_horizontal_swing(hass, config_entry)
+    await _setup(hass, config_entry)
+    assert hass.states.get(ENTITY).attributes["swing_modes"] == ["off", "vertical"]
+
+    await _call(hass, "set_hvac_mode", **{ATTR_HVAC_MODE: "cool"})
+    await _call(hass, "set_swing_mode", **{ATTR_SWING_MODE: "vertical"})
+    for swing in ("both", "horizontal"):
+        with pytest.raises(HomeAssistantError):
+            await _call(hass, "set_swing_mode", **{ATTR_SWING_MODE: swing})
+    assert _frames(emitter) == [_state("cool", 24), _state("cool", 24, swing="vertical")]
+    assert hass.states.get(ENTITY).attributes["swing_mode"] == "vertical"
+
+
+@pytest.mark.parametrize(("stored", "restored"), [("both", "vertical"), ("horizontal", "off")])
+async def test_restored_horizontal_swing_is_dropped(
+    hass: HomeAssistant, emitter, config_entry, stored, restored
+) -> None:
+    mock_restore_cache_with_extra_data(
+        hass,
+        [
+            (
+                State(ENTITY, "cool", {ATTR_TEMPERATURE: 22}),
+                {
+                    "hvac_mode": "cool",
+                    "target_c": 22,
+                    "fan_mode": "auto",
+                    "swing_mode": stored,
+                    "last_on_mode": "cool",
+                },
+            )
+        ],
+    )
+    _without_horizontal_swing(hass, config_entry)
+    await _setup(hass, config_entry)
+    assert config_entry.runtime_data.climate.swing_mode == restored
+    await _call(hass, "turn_on")
+    assert _frames(emitter) == [_state("cool", 22, swing=restored)]

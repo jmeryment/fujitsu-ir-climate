@@ -9,12 +9,14 @@
           "name": "Name",
           "emitter_entity_id": "Infrared emitter",
           "temperature_sensor": "Room temperature sensor",
-          "humidity_sensor": "Room humidity sensor"
+          "humidity_sensor": "Room humidity sensor",
+          "horizontal_swing": "Left/right auto swing"
         },
         "data_description": {
           "emitter_entity_id": "The infrared emitter entity that faces the indoor unit (Broadlink, ESPHome and other infrared integrations).",
           "temperature_sensor": "Optional. Shown as the room's current temperature.",
-          "humidity_sensor": "Optional. Shown as the room's current humidity."
+          "humidity_sensor": "Optional. Shown as the room's current humidity.",
+          "horizontal_swing": "Turn off if the unit's louvre only swings up and down. Some units (e.g. ASTH09KNCA) ignore every command that asks for left/right swing, and Apple Home's Oscillate picks \"both\" whenever it is offered."
         }
       },
       "reconfigure": {
@@ -40,13 +42,15 @@
         "title": "Fujitsu IR Climate options",
         "data": {
           "temperature_sensor": "Room temperature sensor",
-          "humidity_sensor": "Room humidity sensor"
+          "humidity_sensor": "Room humidity sensor",
+          "horizontal_swing": "Left/right auto swing"
         },
         "data_description": {
           "temperature_sensor": "Optional. Shown as the room's current temperature.",
-          "humidity_sensor": "Optional. Shown as the room's current humidity."
+          "humidity_sensor": "Optional. Shown as the room's current humidity.",
+          "horizontal_swing": "Turn off if the unit's louvre only swings up and down. Some units (e.g. ASTH09KNCA) ignore every command that asks for left/right swing, and Apple Home's Oscillate picks \"both\" whenever it is offered."
         },
-        "description": "Change the room sensors shown on the climate entity. To change the emitter, use Reconfigure; to rename, rename the device."
+        "description": "Change the room sensors shown on the climate entity and whether the unit has left/right auto swing. To change the emitter, use Reconfigure; to rename, rename the device."
       }
     }
   },
